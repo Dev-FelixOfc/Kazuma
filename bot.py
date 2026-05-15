@@ -1,8 +1,10 @@
 import os
 import sys
+import json
 import importlib
 from todlib import ToDusClient2
-from utils.config import CONFIG
+from todlib.utils.util import normalize_phone
+from utils.config import CONFIG, JSON_PATH
 
 COMMANDS_DIR = os.path.join(os.path.dirname(__file__), "comandos")
 
@@ -33,6 +35,31 @@ class KazumaBot:
                 except Exception as e:
                     print(f"❌ {cmd_name}: {e}")
 
+    def setup_account(self):
+        print(f"\n🌟 ¡Bienvenido a {CONFIG['bot_name']}!")
+        print("Este bot es de código abierto. Vamos a configurar tu cuenta.\n")
+        
+        phone = input("📱 Ingresa el número de ToDus (ej: 535XXXXXXX): ").strip()
+        self.client.phone_number = normalize_phone(phone)
+        
+        print("📨 Solicitando PIN de ToDus...")
+        self.client.request_code()
+        
+        pin = input("🔢 Ingresa el PIN recibido: ").strip()
+        self.client.validate_code(pin)
+        
+        new_config = {
+            "phone_number": self.client.phone_number,
+            "password": self.client.password,
+            "allowed_senders": [],
+            "log_file": "bot.log"
+        }
+        
+        with open(JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(new_config, f, indent=2)
+        
+        print("\n✅ Configuración guardada en config.json")
+
     def on_message(self, msg):
         body = msg.get("body", "").strip()
         if not body.startswith(CONFIG["prefix"]):
@@ -50,8 +77,11 @@ class KazumaBot:
                 self.client.send_message(sender, f"Error: {e}")
 
     def run(self):
-        print(f"--- {CONFIG['bot_name']} ---")
-        print(f"Owner: {CONFIG['owner']}")
+        if not self.client.password:
+            self.setup_account()
+            
+        print(f"\n--- {CONFIG['bot_name']} ONLINE ---")
+        print(f"Propietario: {CONFIG['owner']}")
         self.client.login()
         self.client.listen_messages(self.on_message)
 
