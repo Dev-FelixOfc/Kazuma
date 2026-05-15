@@ -52,20 +52,21 @@ class KazumaBot:
         print(f"{Fore.YELLOW}➤ Configuración de cuenta nueva\n")
         
         phone = input(f"{Fore.WHITE}📱 Ingresa el número de ToDus (ej: 535XXXXXXX): {Fore.CYAN}").strip()
-        self.client.phone_number = normalize_phone(phone)
+        num_final = normalize_phone(phone)
+        
+        self.client = ToDusClient2(phone_number=num_final)
 
         print(f"\n{Fore.MAGENTA}📨 Solicitando PIN de ToDus...")
-        self.client.request_code(self.client.phone_number)
+        self.client.request_code()
 
         pin = input(f"{Fore.WHITE}🔢 Ingresa el PIN recibido: {Fore.CYAN}").strip()
+        self.client.validate_code(pin)
         
-        self.client.validate_code(self.client.phone_number, pin)
-        
-        password_generada = self.client.password
-        
+        pass_generada = self.client.password
+
         new_config = {
-            "phone_number": self.client.phone_number,
-            "password": password_generada,
+            "phone_number": num_final,
+            "password": pass_generada,
             "bot_name": CONFIG["bot_name"],
             "owner": CONFIG["owner"]
         }
@@ -102,7 +103,10 @@ class KazumaBot:
             self.setup_account()
             with open(JSON_PATH, "r") as f:
                 temp_cfg = json.load(f)
-                self.client.password = temp_cfg["password"]
+                self.client = ToDusClient2(
+                    phone_number=temp_cfg["phone_number"],
+                    password=temp_cfg["password"]
+                )
 
         print(f"{Fore.BLUE}{Style.BRIGHT}--- {CONFIG['bot_name']} ONLINE ---")
         try:
