@@ -49,29 +49,26 @@ class KazumaBot:
         print(f"{Fore.BLUE}{Style.BRIGHT}┃                                                ┃")
         print(f"{Fore.BLUE}{Style.BRIGHT}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
         
-        print(f"{Fore.YELLOW}➤ Configuración de cuenta nueva\n")
+        print(f"{Fore.YELLOW}➤ Login Directo (Sin SMS)\n")
         
-        phone = input(f"{Fore.WHITE}📱 Ingresa el número de ToDus (ej: 535XXXXXXX): {Fore.CYAN}").strip()
+        phone = input(f"{Fore.WHITE}📱 Ingresa el número de ToDus: {Fore.CYAN}").strip()
         num_final = normalize_phone(phone)
-        self.client.phone_number = num_final
-
-        print(f"\n{Fore.MAGENTA}📨 Solicitando PIN de ToDus...")
-        self.client.request_code(num_final)
-
-        pin = input(f"{Fore.WHITE}🔢 Ingresa el PIN recibido: {Fore.CYAN}").strip()
-        self.client.validate_code(num_final, pin)
         
+        print(f"{Fore.WHITE}🔑 Pega la contraseña (password) completa:")
+        pwd_input = input(f"{Fore.CYAN}").strip()
+
         new_config = {
             "phone_number": num_final,
-            "password": self.client.password,
-            "bot_name": CONFIG["bot_name"],
-            "owner": CONFIG["owner"]
+            "password": pwd_input,
+            "bot_name": CONFIG.get("bot_name", "Kazuma"),
+            "owner": CONFIG.get("owner", "")
         }
 
         with open(JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(new_config, f, indent=2)
 
-        print(f"\n{Fore.GREEN}✔ Configuración guardada con éxito.")
+        print(f"\n{Fore.GREEN}✔ Datos guardados en config.json")
+        print(f"{Fore.CYAN}⚙️ Intentando conectar...\n")
 
     def on_message(self, msg):
         body = msg.get("body", "").strip()
@@ -95,8 +92,10 @@ class KazumaBot:
                 print(f"{Fore.RED}[ERR] {e}")
 
     def run(self):
+        # Si el config está vacío o falta la password, pedimos login
         if not CONFIG.get("password"):
             self.setup_account()
+            # Recargar configuración recién guardada
             with open(JSON_PATH, "r") as f:
                 cfg = json.load(f)
                 self.client.phone_number = cfg["phone_number"]
@@ -108,7 +107,8 @@ class KazumaBot:
             print(f"{Fore.GREEN}💡 Bot conectado y escuchando...\n")
             self.client.listen_messages(self.on_message)
         except Exception as e:
-            print(f"{Fore.RED}💥 Error crítico: {e}")
+            print(f"{Fore.RED}💥 Error de conexión: {e}")
+            print(f"{Fore.YELLOW}Tip: Si la password es vieja, borra config.json y reintenta.")
 
 if __name__ == "__main__":
     bot = KazumaBot()
