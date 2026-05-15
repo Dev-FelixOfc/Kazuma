@@ -31,6 +31,13 @@ def execute(client, sender, args, msg):
     )
 
     try:
-        client.send_message(sender, menu_text)
+        client.send_image(
+            sender, 
+            IMAGE_URL, 
+            caption=menu_text
+        )
     except Exception:
-        pass
+        try:
+            client.send_message(sender, menu_text)
+        except Exception:
+            pass
