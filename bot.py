@@ -15,8 +15,8 @@ PREFIXES = ["/", "#", "."]
 class KazumaBot:
     def __init__(self):
         self.client = ToDusClient2(
-            phone_number=CONFIG["phone_number"],
-            password=CONFIG["password"]
+            phone_number=CONFIG.get("phone_number", ""),
+            password=CONFIG.get("password", "")
         )
         self.commands = {}
         self.load_commands()
@@ -59,41 +59,33 @@ class KazumaBot:
 
         pin = input(f"{Fore.WHITE}🔢 Ingresa el PIN recibido: {Fore.CYAN}").strip()
         
-        # Validar y capturar el password generado
         self.client.validate_code(self.client.phone_number, pin)
         
-        # Sincronizar el password al cliente para el login inmediato
-        self.client.password = self.client.password 
-
+        password_generada = self.client.password
+        
         new_config = {
             "phone_number": self.client.phone_number,
-            "password": self.client.password,
-            "allowed_senders": [],
-            "log_file": "bot.log"
+            "password": password_generada,
+            "bot_name": CONFIG["bot_name"],
+            "owner": CONFIG["owner"]
         }
 
         with open(JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(new_config, f, indent=2)
 
-        print(f"\n{Fore.GREEN}✔ Configuración guardada con éxito en config.json")
+        print(f"\n{Fore.GREEN}✔ Configuración guardada con éxito.")
         print(f"{Fore.CYAN}⚙️ Iniciando sesión...\n")
 
     def on_message(self, msg):
         body = msg.get("body", "").strip()
-
         prefix_found = None
         for p in PREFIXES:
             if body.startswith(p):
                 prefix_found = p
                 break
-
-        if not prefix_found:
-            return
+        if not prefix_found: return
 
         parts = body[len(prefix_found):].split(maxsplit=1)
-        if not parts:
-            return
-
         cmd_name = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
         sender = msg.get("from", "").split("@")[0]
@@ -101,24 +93,24 @@ class KazumaBot:
         if cmd_name in self.commands:
             try:
                 self.commands[cmd_name].execute(self.client, sender, args, msg)
-                print(f"{Fore.BLUE}[CMD] {Fore.WHITE}{cmd_name} ejecutado por {Fore.CYAN}{sender}")
+                print(f"{Fore.BLUE}[CMD] {Fore.WHITE}{cmd_name} - {Fore.CYAN}{sender}")
             except Exception as e:
-                self.client.send_message(sender, f"Error: {e}")
                 print(f"{Fore.RED}[ERR] {e}")
 
     def run(self):
-        if not self.client.password:
+        if not CONFIG.get("password"):
             self.setup_account()
+            with open(JSON_PATH, "r") as f:
+                temp_cfg = json.load(f)
+                self.client.password = temp_cfg["password"]
 
         print(f"{Fore.BLUE}{Style.BRIGHT}--- {CONFIG['bot_name']} ONLINE ---")
-        print(f"{Fore.CYAN}Propietario: {Fore.WHITE}{CONFIG['owner']}")
-        
         try:
             self.client.login()
-            print(f"{Fore.GREEN}💡 Bot conectado y escuchando mensajes...\n")
+            print(f"{Fore.GREEN}💡 Bot conectado y escuchando...\n")
             self.client.listen_messages(self.on_message)
         except Exception as e:
-            print(f"{Fore.RED}💥 Error crítico al conectar: {e}")
+            print(f"{Fore.RED}💥 Error crítico: {e}")
 
 if __name__ == "__main__":
     bot = KazumaBot()
