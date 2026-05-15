@@ -53,7 +53,6 @@ class KazumaBot:
         
         phone = input(f"{Fore.WHITE}📱 Ingresa el número de ToDus (ej: 535XXXXXXX): {Fore.CYAN}").strip()
         num_final = normalize_phone(phone)
-        
         self.client.phone_number = num_final
 
         print(f"\n{Fore.MAGENTA}📨 Solicitando PIN de ToDus...")
@@ -62,11 +61,9 @@ class KazumaBot:
         pin = input(f"{Fore.WHITE}🔢 Ingresa el PIN recibido: {Fore.CYAN}").strip()
         self.client.validate_code(num_final, pin)
         
-        pass_generada = self.client.password
-
         new_config = {
             "phone_number": num_final,
-            "password": pass_generada,
+            "password": self.client.password,
             "bot_name": CONFIG["bot_name"],
             "owner": CONFIG["owner"]
         }
@@ -75,7 +72,6 @@ class KazumaBot:
             json.dump(new_config, f, indent=2)
 
         print(f"\n{Fore.GREEN}✔ Configuración guardada con éxito.")
-        print(f"{Fore.CYAN}⚙️ Iniciando sesión...\n")
 
     def on_message(self, msg):
         body = msg.get("body", "").strip()
@@ -102,9 +98,9 @@ class KazumaBot:
         if not CONFIG.get("password"):
             self.setup_account()
             with open(JSON_PATH, "r") as f:
-                temp_cfg = json.load(f)
-                self.client.phone_number = temp_cfg["phone_number"]
-                self.client.password = temp_cfg["password"]
+                cfg = json.load(f)
+                self.client.phone_number = cfg["phone_number"]
+                self.client.password = cfg["password"]
 
         print(f"{Fore.BLUE}{Style.BRIGHT}--- {CONFIG['bot_name']} ONLINE ---")
         try:
