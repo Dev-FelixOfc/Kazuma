@@ -7,6 +7,7 @@ from todlib.utils.util import normalize_phone
 from utils.config import CONFIG, JSON_PATH
 
 COMMANDS_DIR = os.path.join(os.path.dirname(__file__), "comandos")
+PREFIXES = ["/", "#", "."]
 
 class KazumaBot:
     def __init__(self):
@@ -62,10 +63,20 @@ class KazumaBot:
 
     def on_message(self, msg):
         body = msg.get("body", "").strip()
-        if not body.startswith(CONFIG["prefix"]):
+        
+        prefix_found = None
+        for p in PREFIXES:
+            if body.startswith(p):
+                prefix_found = p
+                break
+        
+        if not prefix_found:
             return
 
-        parts = body[len(CONFIG["prefix"]):].split(maxsplit=1)
+        parts = body[len(prefix_found):].split(maxsplit=1)
+        if not parts:
+            return
+            
         cmd_name = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
         sender = msg.get("from", "").split("@")[0]
