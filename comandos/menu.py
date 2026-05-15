@@ -1,7 +1,7 @@
 from todlib import FileType
 from utils.config import CONFIG
 
-IMAGE_URL = "https://tu-imagen-aqui.jpg"
+IMAGE_URL = "https://upload.yotsuba.giize.com/u/WHmfBtAj.jpeg"
 
 def execute(client, sender, args, msg):
     user_name = msg.get("contact_name") or msg.get("name") or "Usuario"
@@ -36,7 +36,7 @@ def execute(client, sender, args, msg):
             url=IMAGE_URL,
             file_type=FileType.PICTURE,
             caption=menu_text,
-            file_name="Menu_Kazuma.jpg"
+            file_name="Menu_Kazuma.jpeg"
         )
     except Exception:
         client.send_message(sender, menu_text)
