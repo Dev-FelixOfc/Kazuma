@@ -61,7 +61,7 @@ class KazumaBot:
             "phone_number": num_final,
             "password": pwd_input,
             "bot_name": CONFIG.get("bot_name", "Kazuma"),
-            "owner": CONFIG.get("owner", "")
+            "owner": CONFIG.get("owner", "5350045157")
         }
 
         with open(JSON_PATH, "w", encoding="utf-8") as f:
@@ -71,18 +71,25 @@ class KazumaBot:
         print(f"{Fore.CYAN}⚙️ Intentando conectar...\n")
 
     def on_message(self, msg):
+        sender = msg.get("from", "").split("@")[0]
+        
+        # ANTIBUCLE: Si el mensaje lo mandó el propio bot, lo ignoramos
+        if sender == self.client.phone_number:
+            return
+
         body = msg.get("body", "").strip()
         prefix_found = None
         for p in PREFIXES:
             if body.startswith(p):
                 prefix_found = p
                 break
-        if not prefix_found: return
+        
+        if not prefix_found: 
+            return
 
         parts = body[len(prefix_found):].split(maxsplit=1)
         cmd_name = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
-        sender = msg.get("from", "").split("@")[0]
 
         if cmd_name in self.commands:
             try:
@@ -92,10 +99,8 @@ class KazumaBot:
                 print(f"{Fore.RED}[ERR] {e}")
 
     def run(self):
-        # Si el config está vacío o falta la password, pedimos login
         if not CONFIG.get("password"):
             self.setup_account()
-            # Recargar configuración recién guardada
             with open(JSON_PATH, "r") as f:
                 cfg = json.load(f)
                 self.client.phone_number = cfg["phone_number"]
@@ -108,7 +113,6 @@ class KazumaBot:
             self.client.listen_messages(self.on_message)
         except Exception as e:
             print(f"{Fore.RED}💥 Error de conexión: {e}")
-            print(f"{Fore.YELLOW}Tip: Si la password es vieja, borra config.json y reintenta.")
 
 if __name__ == "__main__":
     bot = KazumaBot()
