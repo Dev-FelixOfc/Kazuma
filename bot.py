@@ -50,9 +50,9 @@ class KazumaBot:
                 self.client.send_message(sender, f"Error: {e}")
 
     def run(self):
-        self.client.login()
-        print(f"Bot: {CONFIG['bot_name']}")
+        print(f"--- {CONFIG['bot_name']} ---")
         print(f"Owner: {CONFIG['owner']}")
+        self.client.login()
         self.client.listen_messages(self.on_message)
 
 if __name__ == "__main__":
