@@ -47,7 +47,7 @@ class KazumaBot:
         self.client.request_code(self.client.phone_number)
 
         pin = input("🔢 Ingresa el PIN recibido: ").strip()
-        self.client.validate_code(pin)
+        self.client.validate_code(self.client.phone_number, pin)
 
         new_config = {
             "phone_number": self.client.phone_number,
