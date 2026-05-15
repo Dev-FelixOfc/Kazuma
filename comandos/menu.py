@@ -18,7 +18,7 @@ def execute(client, sender, args, msg):
         "┃ ✐ *Upload* »\n"
         "┃ upload.yotsuba.giize.com\n"
         "┃ ✐ *Official channel* »\n"
-        "┃ https://whatsapp.com/channel/0029Vb6sgWdJkK73qeLU0J0N\n"
+        "┃ https://chat.todus.cu/@0b19feada9d043baa03ce847a9984f7a
         "╰━━━━━━━━━━━━━━━━━━━╯\n\n"
         "┏━━━━✿︎ 𝐈𝐍𝐅𝐎-𝐔𝐒𝐄𝐑 ✿︎━━━━╮\n"
         f"┃ ✐ *Usuario* » {user_name}\n"
