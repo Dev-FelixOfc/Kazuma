@@ -22,7 +22,7 @@ class KazumaBot:
         self.commands.clear()
         if not os.path.exists(COMMANDS_DIR):
             os.makedirs(COMMANDS_DIR)
-            
+
         for filename in os.listdir(COMMANDS_DIR):
             if filename.endswith(".py") and not filename.startswith("__"):
                 cmd_name = filename[:-3]
@@ -39,44 +39,44 @@ class KazumaBot:
     def setup_account(self):
         print(f"\n🌟 ¡Bienvenido a {CONFIG['bot_name']}!")
         print("Este bot es de código abierto. Vamos a configurar tu cuenta.\n")
-        
+
         phone = input("📱 Ingresa el número de ToDus (ej: 535XXXXXXX): ").strip()
         self.client.phone_number = normalize_phone(phone)
-        
+
         print("📨 Solicitando PIN de ToDus...")
-        self.client.request_code()
-        
+        self.client.request_code(self.client.phone_number)
+
         pin = input("🔢 Ingresa el PIN recibido: ").strip()
         self.client.validate_code(pin)
-        
+
         new_config = {
             "phone_number": self.client.phone_number,
             "password": self.client.password,
             "allowed_senders": [],
             "log_file": "bot.log"
         }
-        
+
         with open(JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(new_config, f, indent=2)
-        
+
         print("\n✅ Configuración guardada en config.json")
 
     def on_message(self, msg):
         body = msg.get("body", "").strip()
-        
+
         prefix_found = None
         for p in PREFIXES:
             if body.startswith(p):
                 prefix_found = p
                 break
-        
+
         if not prefix_found:
             return
 
         parts = body[len(prefix_found):].split(maxsplit=1)
         if not parts:
             return
-            
+
         cmd_name = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
         sender = msg.get("from", "").split("@")[0]
@@ -90,7 +90,7 @@ class KazumaBot:
     def run(self):
         if not self.client.password:
             self.setup_account()
-            
+
         print(f"\n--- {CONFIG['bot_name']} ONLINE ---")
         print(f"Propietario: {CONFIG['owner']}")
         self.client.login()
