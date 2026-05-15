@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import time
 import importlib
 from colorama import Fore, Style, init
 from todlib import ToDusClient2
@@ -19,6 +20,7 @@ class KazumaBot:
             password=CONFIG.get("password", "")
         )
         self.commands = {}
+        self.last_command_time = {} # Para el control de spam
         self.load_commands()
 
     def load_commands(self):
@@ -40,40 +42,10 @@ class KazumaBot:
                 except Exception as e:
                     print(f"{Fore.RED}  ❌ {cmd_name}: {e}")
 
-    def setup_account(self):
-        os.system('clear')
-        print(f"{Fore.BLUE}{Style.BRIGHT}┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓")
-        print(f"{Fore.BLUE}{Style.BRIGHT}┃                                                ┃")
-        print(f"{Fore.CYAN}{Style.BRIGHT}┃    🌟 ¡BIENVENIDO A {CONFIG['bot_name'].upper()}!    ┃")
-        print(f"{Fore.CYAN}┃         Desarrollado por Félix                 ┃")
-        print(f"{Fore.BLUE}{Style.BRIGHT}┃                                                ┃")
-        print(f"{Fore.BLUE}{Style.BRIGHT}┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛\n")
-        
-        print(f"{Fore.YELLOW}➤ Login Directo (Sin SMS)\n")
-        
-        phone = input(f"{Fore.WHITE}📱 Ingresa el número de ToDus: {Fore.CYAN}").strip()
-        num_final = normalize_phone(phone)
-        
-        print(f"{Fore.WHITE}🔑 Pega la contraseña (password) completa:")
-        pwd_input = input(f"{Fore.CYAN}").strip()
-
-        new_config = {
-            "phone_number": num_final,
-            "password": pwd_input,
-            "bot_name": CONFIG.get("bot_name", "Kazuma"),
-            "owner": CONFIG.get("owner", "5350045157")
-        }
-
-        with open(JSON_PATH, "w", encoding="utf-8") as f:
-            json.dump(new_config, f, indent=2)
-
-        print(f"\n{Fore.GREEN}✔ Datos guardados en config.json")
-        print(f"{Fore.CYAN}⚙️ Intentando conectar...\n")
-
     def on_message(self, msg):
         sender = msg.get("from", "").split("@")[0]
         
-        # ANTIBUCLE: Si el mensaje lo mandó el propio bot, lo ignoramos
+        # 1. ANTIBUCLE: Ignorar si el mensaje es del propio bot
         if sender == self.client.phone_number:
             return
 
@@ -91,28 +63,28 @@ class KazumaBot:
         cmd_name = parts[0].lower()
         args = parts[1] if len(parts) > 1 else ""
 
+        # 2. ANTISPAM: Cooldown de 2 segundos por usuario
+        current_time = time.time()
+        if sender in self.last_command_time:
+            if current_time - self.last_command_time[sender] < 2:
+                return
+        
         if cmd_name in self.commands:
+            self.last_command_time[sender] = current_time
             try:
                 self.commands[cmd_name].execute(self.client, sender, args, msg)
                 print(f"{Fore.BLUE}[CMD] {Fore.WHITE}{cmd_name} - {Fore.CYAN}{sender}")
             except Exception as e:
-                print(f"{Fore.RED}[ERR] {e}")
+                print(f"{Fore.RED}[ERR en {cmd_name}]: {e}")
 
     def run(self):
-        if not CONFIG.get("password"):
-            self.setup_account()
-            with open(JSON_PATH, "r") as f:
-                cfg = json.load(f)
-                self.client.phone_number = cfg["phone_number"]
-                self.client.password = cfg["password"]
-
         print(f"{Fore.BLUE}{Style.BRIGHT}--- {CONFIG['bot_name']} ONLINE ---")
         try:
             self.client.login()
             print(f"{Fore.GREEN}💡 Bot conectado y escuchando...\n")
             self.client.listen_messages(self.on_message)
         except Exception as e:
-            print(f"{Fore.RED}💥 Error de conexión: {e}")
+            print(f"{Fore.RED}💥 Error: {e}")
 
 if __name__ == "__main__":
     bot = KazumaBot()
