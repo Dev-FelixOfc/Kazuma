@@ -1,3 +1,4 @@
+import requests
 from todlib import FileType
 from utils.config import CONFIG
 
@@ -31,13 +32,26 @@ def execute(client, sender, args, msg):
     )
 
     try:
-        client.send_image(
-            sender, 
-            IMAGE_URL, 
-            caption=menu_text
+        # Descargamos los bytes de la imagen de internet
+        response = requests.get(IMAGE_URL, timeout=10)
+        foto_bytes = response.content
+        
+        # 1. La librería sube los bytes y obtiene la URL de ToDus automáticamente
+        url_todus = client.upload_file(foto_bytes, file_type="picture")
+        
+        # 2. La librería envía el mensaje usando esa URL interna
+        client.send_file_message(
+            to_phone=sender,
+            url=url_todus,
+            file_type="picture",
+            caption=menu_text,
+            file_name="Menu.jpg",
+            file_size=len(foto_bytes)
         )
-    except Exception:
+    except Exception as e:
+        # Si algo falla en el proceso de imagen, enviamos texto plano como respaldo
+        print(f"Error en comando menu: {e}")
         try:
             client.send_message(sender, menu_text)
-        except Exception:
+        except:
             pass
