@@ -32,26 +32,27 @@ def execute(client, sender, args, msg):
     )
 
     try:
-        # Descargamos los bytes de la imagen de internet
-        response = requests.get(IMAGE_URL, timeout=10)
+        # 1. Descargar la imagen del menú a memoria
+        response = requests.get(IMAGE_URL)
         foto_bytes = response.content
         
-        # 1. La librería sube los bytes y obtiene la URL de ToDus automáticamente
-        url_todus = client.upload_file(foto_bytes, file_type="picture")
+        # 2. Subir la foto a ToDus para obtener la URL interna
+        # Nota: Asegúrate de que 'upload_file' exista en la lib de tu bro
+        url_todus = client.upload_file(foto_bytes, file_type=FileType.PICTURE)
         
-        # 2. La librería envía el mensaje usando esa URL interna
+        # 3. Enviar el mensaje con la foto adjunta
         client.send_file_message(
             to_phone=sender,
             url=url_todus,
-            file_type="picture",
+            file_type=FileType.PICTURE,
             caption=menu_text,
-            file_name="Menu.jpg",
+            file_name="Menu_Kazuma.jpeg",
             file_size=len(foto_bytes)
         )
     except Exception as e:
-        # Si algo falla en el proceso de imagen, enviamos texto plano como respaldo
-        print(f"Error en comando menu: {e}")
+        # Si algo falla (ej. no hay internet para descargar la foto), manda solo texto
+        print(f"Error enviando foto: {e}")
         try:
             client.send_message(sender, menu_text)
-        except:
+        except Exception:
             pass
