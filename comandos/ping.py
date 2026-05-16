@@ -16,8 +16,8 @@ def execute(client, sender, args, msg):
         latency_ms = max(0, int(execution_time * 1000))
 
     ping_text = (
-        f"⚡ *[{bot_name}] PONG!*\n\n"
-        f"📡 *Velocidad:* `{latency_ms} ms`\n\n"
+        f"⚡ [{bot_name}] PONG!\n\n"
+        f"📡 Velocidad: `{latency_ms} ms`\n\n"
         "> © Developed by Félix"
     )
 
