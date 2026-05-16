@@ -1,4 +1,3 @@
-import requests
 from todlib import FileType
 from utils.config import CONFIG
 
@@ -32,26 +31,12 @@ def execute(client, sender, args, msg):
     )
 
     try:
-        # 1. Descargar la imagen del menú a memoria
-        response = requests.get(IMAGE_URL)
-        foto_bytes = response.content
-        
-        # 2. Subir la foto a ToDus para obtener la URL interna
-        # Nota: Asegúrate de que 'upload_file' exista en la lib de tu bro
-        url_todus = client.upload_file(foto_bytes, file_type=FileType.PICTURE)
-        
-        # 3. Enviar el mensaje con la foto adjunta
-        client.send_file_message(
-            to_phone=sender,
-            url=url_todus,
-            file_type=FileType.PICTURE,
-            caption=menu_text,
-            file_name="Menu_Kazuma.jpeg",
-            file_size=len(foto_bytes)
+        client.send_image(
+            sender, 
+            IMAGE_URL, 
+            caption=menu_text
         )
-    except Exception as e:
-        # Si algo falla (ej. no hay internet para descargar la foto), manda solo texto
-        print(f"Error enviando foto: {e}")
+    except Exception:
         try:
             client.send_message(sender, menu_text)
         except Exception:
